@@ -32,6 +32,7 @@
          Query2(artistName);
  
          scanner.close();
+         QueryGenreCollaborations();
      }
  
      /**
@@ -132,6 +133,36 @@
             System.err.println("Error during Query2: " + e.getMessage());
         }
     }
+    
+    public static void QueryGenreCollaborations() {
+        String query = "SELECT a.main_genre AS genre, " +
+                       "FLOOR(YEAR(r.release_date) / 10) * 10 AS decade, " +
+                       "COUNT(DISTINCT s.song_id) AS collaboration_count " +
+                       "FROM songs s " +
+                       "JOIN tracks t ON s.song_id = t.song_id " +
+                       "JOIN releases r ON t.album_id = r.album_id " +
+                       "JOIN artists a ON r.artist_id = a.artist_id " +
+                       "WHERE s.artists LIKE '%,%' " + // Check for multiple artists
+                       "GROUP BY a.main_genre, FLOOR(YEAR(r.release_date) / 10) * 10 " +
+                       "ORDER BY genre, decade";
+    
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            ResultSet rs = preparedStatement.executeQuery();
+    
+            System.out.println("Genre | Decade | Collaboration Count");
+            System.out.println("--------------------------------------");
+    
+            while (rs.next()) {
+                String genre = rs.getString("genre");
+                int decade = rs.getInt("decade");
+                int count = rs.getInt("collaboration_count");
+                System.out.println(genre + " | " + decade + " | " + count);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error during Query: " + e.getMessage());
+        }
+    }
+    
     
     
     

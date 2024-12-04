@@ -6,6 +6,13 @@
             "name": "Queries",
             "request": "launch",
             "mainClass": "Queries",
+            "projectName": "term-project-v2_dbcb2818"
+        },
+        {
+            "type": "java",
+            "name": "Queries",
+            "request": "launch",
+            "mainClass": "Queries",
             "projectName": "term-project-2_55cac276"
         }
     ]
