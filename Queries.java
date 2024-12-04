@@ -23,16 +23,20 @@
          System.out.println("Database connection established!");
  
          // Example: Find genres with the most artist collaborations
-         Query1();
+         //Query1();
  
          // Example: Find songs by a specific artist
          Scanner scanner = new Scanner(System.in);
-         System.out.println("Enter artist name:");
-         String artistName = scanner.nextLine();
-         Query2(artistName);
+         //System.out.println("Enter artist name:");
+         //String artistName = scanner.nextLine();
+         //Query2(artistName);
+
+            System.out.print("Enter the genre: ");
+            String genre = scanner.nextLine();
  
          scanner.close();
-         QueryGenreCollaborations();
+         //QueryGenreCollaborations();
+         QueryGenreCollaborationsByUserInput(genre);
      }
  
      /**
@@ -163,10 +167,43 @@
         }
     }
     
-    
-    
-    
-    
+    public static void QueryGenreCollaborationsByUserInput(String genre) {
+        String query = "SELECT FLOOR(YEAR(r.release_date) / 10) * 10 AS decade, " +
+                       "COUNT(DISTINCT s.song_id) AS collaboration_count " +
+                       "FROM songs s " +
+                       "JOIN tracks t ON s.song_id = t.song_id " +
+                       "JOIN releases r ON t.album_id = r.album_id " +
+                       "JOIN artists a ON r.artist_id = a.artist_id " +
+                       "WHERE s.artists LIKE '%,%' AND a.main_genre = ? " +
+                       "GROUP BY FLOOR(YEAR(r.release_date) / 10) * 10 " +
+                       "ORDER BY decade";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            // Set the user input for the genre parameter
+            preparedStatement.setString(1, genre);
+
+            // Execute the query
+            ResultSet rs = preparedStatement.executeQuery();
+
+            // Print the results
+            System.out.println("Decade | Collaboration Count");
+            System.out.println("-----------------------------");
+
+            boolean hasResults = false;
+            while (rs.next()) {
+                hasResults = true;
+                int decade = rs.getInt("decade");
+                int count = rs.getInt("collaboration_count");
+                System.out.println(decade + " | " + count);
+            }
+
+            if (!hasResults) {
+                System.out.println("No data found for genre: " + genre);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error during Query: " + e.getMessage());
+        }
+    }
     
     
  }
