@@ -31,12 +31,20 @@
          //String artistName = scanner.nextLine();
          //Query2(artistName);
 
-            System.out.print("Enter the genre: ");
-            String genre = scanner.nextLine();
+            //System.out.print("Enter the genre: ");
+            //String genre = scanner.nextLine();
  
-         scanner.close();
+         
          //QueryGenreCollaborations();
-         QueryGenreCollaborationsByUserInput(genre);
+         //QueryGenreCollaborationsByUserInput(genre);
+         // Collect user input for the decade
+         System.out.print("Enter the decade (e.g., 1980, 1990): ");
+         int decade = scanner.nextInt();
+
+         // Fetch results for the user-input decade
+         QueryTopGenreByDecade(decade);
+         QueryTopArtistByDecade(decade);
+         scanner.close();
      }
  
      /**
@@ -205,6 +213,77 @@
         }
     }
     
+    public static void QueryTopGenreByDecade(int decade) {
+        String query = "SELECT a.main_genre AS genre, " +
+                       "SUM(s.popularity) AS total_popularity " +
+                       "FROM songs s " +
+                       "JOIN tracks t ON s.song_id = t.song_id " +
+                       "JOIN releases r ON t.album_id = r.album_id " +
+                       "JOIN artists a ON r.artist_id = a.artist_id " +
+                       "WHERE FLOOR(YEAR(r.release_date) / 10) * 10 = ? " +
+                       "GROUP BY a.main_genre " +
+                       "ORDER BY total_popularity DESC " +
+                       "LIMIT 1";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            // Set the decade parameter
+            preparedStatement.setInt(1, decade);
+
+            // Execute the query
+            ResultSet rs = preparedStatement.executeQuery();
+
+            // Print the result
+            if (rs.next()) {
+                String genre = rs.getString("genre");
+                int totalPopularity = rs.getInt("total_popularity");
+                System.out.println("Top Genre in " + decade + ":");
+                System.out.println("Genre: " + genre + " | Total Popularity: " + totalPopularity);
+            } else {
+                System.out.println("No data found for the decade: " + decade);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error during QueryTopGenreByDecade: " + e.getMessage());
+        }
+    }
+
+    public static void QueryTopArtistByDecade(int decade) {
+        String query = "SELECT a.name AS artist, " +
+                       "SUM(s.popularity) AS total_popularity " +
+                       "FROM songs s " +
+                       "JOIN tracks t ON s.song_id = t.song_id " +
+                       "JOIN releases r ON t.album_id = r.album_id " +
+                       "JOIN artists a ON r.artist_id = a.artist_id " +
+                       "WHERE FLOOR(YEAR(r.release_date) / 10) * 10 = ? " +
+                       "GROUP BY a.name " +
+                       "ORDER BY total_popularity DESC " +
+                       "LIMIT 1";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            // Set the decade parameter
+            preparedStatement.setInt(1, decade);
+
+            // Execute the query
+            ResultSet rs = preparedStatement.executeQuery();
+
+            // Print the result
+            if (rs.next()) {
+                String artist = rs.getString("artist");
+                int totalPopularity = rs.getInt("total_popularity");
+                System.out.println("Top Artist in " + decade + ":");
+                System.out.println("Artist: " + artist + " | Total Popularity: " + totalPopularity);
+            } else {
+                System.out.println("No data found for the decade: " + decade);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error during QueryTopArtistByDecade: " + e.getMessage());
+        }
+    }
+
+
+
+
+
+
     
  }
  
