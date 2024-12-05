@@ -42,8 +42,9 @@
          int decade = scanner.nextInt();
 
          // Fetch results for the user-input decade
-         QueryTopGenreByDecade(decade);
-         QueryTopArtistByDecade(decade);
+         //QueryTopGenreByDecade(decade);
+         //QueryTopArtistByDecade(decade);
+         QueryArtistsWithMultipleGenres(decade);
          scanner.close();
      }
  
@@ -279,6 +280,31 @@
         }
     }
 
+    public static void QueryArtistsWithMultipleGenres(int decade) {
+        String query = "SELECT COUNT(DISTINCT a.artist_id) AS artist_count " +
+                       "FROM artists a " +
+                       "JOIN releases r ON a.artist_id = r.artist_id " +
+                       "WHERE FLOOR(YEAR(r.release_date) / 10) * 10 = ? " +
+                       "AND FIND_IN_SET(a.main_genre, a.genres) = 0";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            // Set the decade parameter
+            preparedStatement.setInt(1, decade);
+
+            // Execute the query
+            ResultSet rs = preparedStatement.executeQuery();
+
+            // Print the result
+            if (rs.next()) {
+                int artistCount = rs.getInt("artist_count");
+                System.out.println("Number of artists with multiple genres in " + decade + ": " + artistCount);
+            } else {
+                System.out.println("No data found for the decade: " + decade);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error during QueryArtistsWithMultipleGenres: " + e.getMessage());
+        }
+    }
 
 
 
