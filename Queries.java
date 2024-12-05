@@ -134,7 +134,38 @@
     }
     
     
-    
+    public static void Query4() {
+        String query = "SELECT " +
+               "a.main_genre AS genre, " +
+               "AVG(TIMESTAMPDIFF(YEAR, release_dates.min_date, release_dates.max_date)) AS avg_active_years " +
+               "FROM " +
+               "artists a " +
+               "JOIN " +
+               "(SELECT artist_id, MIN(release_date) AS min_date, MAX(release_date) AS max_date " +
+               "FROM albums " +
+               "JOIN releases ON albums.album_id = releases.album_id " +
+               "GROUP BY artist_id) AS release_dates " +
+               "ON a.artist_id = release_dates.artist_id " +
+               "GROUP BY a.main_genre " +
+               "ORDER BY avg_active_years DESC " +
+               "LIMIT 50;";
+
+
+ 
+         try (PreparedStatement preparedStatement = connection.prepareStatement(query);
+              ResultSet rs = preparedStatement.executeQuery()) {
+ 
+             System.out.println("Genre | avg_active_years");
+             System.out.println("---------------------------");
+             while (rs.next()) {
+                 String genre = rs.getString("genre");
+                 int count = rs.getInt("avg_active_years");
+                 System.out.println(genre + " | " + count);
+             }
+         } catch (SQLException e) {
+             System.err.println("Error during Query4: " + e.getMessage());
+         }
+     }
     
     
     
