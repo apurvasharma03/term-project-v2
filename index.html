@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Mogul</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        .button-container {
+            margin-top: 20px;
+        }
+        .button {
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Music Mogul</h1>
+    <p>Select an option below to explore music data:</p>
+    <div class="button-container">
+        <button class="button" onclick="handleClick('collaborations')">Tell me about collaborations</button>
+        <button class="button" onclick="handleClick('top-genres')">Tell me about the top genres</button>
+        <button class="button" onclick="handleClick('top-artists')">Tell me about the top artists</button>
+        <button class="button" onclick="handleClick('cross-genre')">Tell me about cross-genre artists</button>
+        <button class="button" onclick="handleClick('longest-careers')">Tell me about longest artists' careers</button>
+        <button class="button" onclick="handleClick('song-quantity')">Tell me about song quantity</button>
+    </div>
+    <div id="result" style="margin-top: 20px;"></div>
+
+    <script>
+        async function handleClick(queryType) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = 'Loading...';
+
+            try {
+                const response = await fetch(`http://localhost:8080/api/${queryType}`);
+                const data = await response.json();
+
+                // Display the result (Customize this based on the API response)
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                resultDiv.textContent = 'An error occurred. Please try again.';
+            }
+        }
+    </script>
+</body>
+</html>

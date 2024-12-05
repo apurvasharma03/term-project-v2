@@ -1,59 +1,24 @@
 const express = require("express");
-const cors = require("cors");
-const mysql = require("mysql2");
+const path = require("path");
 
+// Create the Express application
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// Serve static files (CSS, JS, images, etc.) from the current directory
+app.use(express.static(path.join(__dirname)));
 
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "Slyder11$",
-  database: "musicoset",
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error("Error connecting to the database:", err);
-  } else {
-    console.log("Connected to the MySQL database!");
-  }
-});
-
-// Default root route
+// Serve the HTML file for the root URL
 app.get("/", (req, res) => {
-  res.send("Welcome to the Music Analysis API!");
+    res.sendFile(path.join(__dirname, "index.html")); // Ensure 'index.html' is in the same directory
 });
 
-// Example API endpoint
-app.get("/api/artists/multiple-genres", (req, res) => {
-  const { decade } = req.query;
-
-  if (!decade) {
-    return res.status(400).json({ error: "Decade is required" });
-  }
-
-  const query = `
-    SELECT COUNT(DISTINCT a.artist_id) AS artist_count
-    FROM artists a
-    JOIN releases r ON a.artist_id = r.artist_id
-    WHERE FLOOR(YEAR(r.release_date) / 10) * 10 = ?
-    AND FIND_IN_SET(a.main_genre, a.genres) = 0
-  `;
-
-  db.query(query, [decade], (err, results) => {
-    if (err) {
-      console.error("Error executing query:", err);
-      res.status(500).json({ error: "Error executing query" });
-    } else {
-      res.json({ artistCount: results[0]?.artist_count || 0 });
-    }
-  });
+// Example API endpoint (optional, for backend functionality)
+app.get("/api/example", (req, res) => {
+    res.json({ message: "This is an example API response." });
 });
 
+// Start the server on port 8080
 const PORT = 8080;
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
