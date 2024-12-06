@@ -237,6 +237,52 @@ async function QuerySongQuantityByDecade(decade) {
     }
 }
 
+async function QueryArtistsCareers(genre) {
+    const query = `
+        SELECT 
+            a.main_genre AS genre,
+            AVG(TIMESTAMPDIFF(YEAR, release_dates.min_date, release_dates.max_date)) AS avg_active_years
+        FROM 
+            artists a
+        JOIN 
+            (SELECT artist_id, MIN(release_date) AS min_date, MAX(release_date) AS max_date 
+             FROM albums 
+             JOIN releases ON albums.album_id = releases.album_id 
+             GROUP BY artist_id) AS release_dates 
+        ON a.artist_id = release_dates.artist_id
+        WHERE a.main_genre = ?
+        GROUP BY a.main_genre
+        ORDER BY avg_active_years DESC
+        LIMIT 50;
+    `;
+
+    try {
+        // Create a connection to the database
+        const connection = await mysql.createConnection(connectionConfig);
+
+        // Execute the query with the given genre parameter
+        const [rows] = await connection.execute(query, [genre]);
+
+        // Close the connection
+        await connection.end();
+
+        // Format and return the result
+        if (rows.length > 0) {
+            let result = "Genre | Avg Active Years\n---------------------------\n";
+            rows.forEach((row) => {
+                result += `${row.genre} | ${row.avg_active_years}\n`;
+            });
+            return result.trim();
+        } else {
+            return `No data found for genre: ${genre}`;
+        }
+    } catch (error) {
+        console.error("Error querying the database:", error);
+        return "An error occurred while querying the database.";
+    }
+}
+
+
 
 
 
@@ -329,6 +375,25 @@ app.get("/api/song-quantity", async (req, res) => {
         res.status(500).json({ error: "An error occurred while processing your request." });
     }
 });
+
+// API endpoint: Artists' Careers by Genre
+app.get("/api/artists-careers", async (req, res) => {
+    const { genre } = req.query;
+
+    // Validate the input
+    if (!genre) {
+        return res.status(400).json({ message: "Genre is required." });
+    }
+
+    try {
+        const result = await QueryArtistsCareers(genre);
+        res.json({ message: result });
+    } catch (error) {
+        console.error("Error in /api/artists-careers:", error);
+        res.status(500).json({ error: "An error occurred while processing your request." });
+    }
+});
+
 
 
 

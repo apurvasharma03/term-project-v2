@@ -66,8 +66,8 @@
         <button class="button" onclick="handleTopGenres()">Tell me about the top genres</button>
         <button class="button" onclick="handleTopArtists()">Tell me about the top artists</button>
         <button class="button" onclick="handleCrossGenreArtists()">Tell me about cross-genre artists</button>
-        <button class="button" onclick="handleLongestCareers()">Tell me about longest artists' careers</button>
         <button class="button" onclick="handleSongQuantity()">Tell me about song quantity</button>
+        <button class="button" onclick="handleArtistsCareers()">Tell me about longest artists' careers</button>
     </div>
     <div id="result"></div>
 
@@ -194,6 +194,26 @@
                 buttons.forEach(btn => btn.disabled = false);
             }
         }
+        async function handleArtistsCareers() {
+            const genre = prompt("Enter the genre (e.g., Pop):");
+            if (!genre) {
+                alert("Please enter a valid genre!");
+                return;
+            }
+        
+            const resultDiv = document.getElementById("result");
+            resultDiv.textContent = "Loading...";
+        
+            try {
+                const response = await fetch(`http://localhost:8080/api/artists-careers?genre=${encodeURIComponent(genre)}`);
+                const data = await response.json();
+                resultDiv.textContent = data.message;
+            } catch (error) {
+                console.error("Error fetching artists' careers:", error);
+                resultDiv.textContent = "An error occurred. Please try again.";
+            }
+        }
+        
     </script>
 </body>
 </html>
