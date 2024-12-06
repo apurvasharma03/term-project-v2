@@ -115,8 +115,25 @@
         
 
         async function handleTopArtists() {
-            fetchAndDisplay("top-artists", "Top Artists");
+            const decade = prompt("Enter the decade (e.g., 1980):");
+            if (!decade || isNaN(decade)) {
+                alert("Please enter a valid decade!");
+                return;
+            }
+        
+            const resultDiv = document.getElementById("result");
+            resultDiv.textContent = "Loading...";
+        
+            try {
+                const response = await fetch(`http://localhost:8080/api/top-artists?decade=${decade}`);
+                const data = await response.json();
+                resultDiv.textContent = data.message;
+            } catch (error) {
+                console.error("Error fetching top artists:", error);
+                resultDiv.textContent = "An error occurred. Please try again.";
+            }
         }
+        
 
         async function handleCrossGenreArtists() {
             const decade = prompt("Enter the decade (e.g., 1980):").trim();
@@ -132,8 +149,25 @@
         }
 
         async function handleSongQuantity() {
-            fetchAndDisplay("song-quantity", "Song Quantity");
+            const decade = prompt("Enter the decade (e.g., 1980):");
+            if (!decade || isNaN(decade)) {
+                alert("Please enter a valid decade!");
+                return;
+            }
+        
+            const resultDiv = document.getElementById("result");
+            resultDiv.textContent = "Loading...";
+        
+            try {
+                const response = await fetch(`http://localhost:8080/api/song-quantity?decade=${decade}`);
+                const data = await response.json();
+                resultDiv.textContent = data.message;
+            } catch (error) {
+                console.error("Error fetching song quantity:", error);
+                resultDiv.textContent = "An error occurred. Please try again.";
+            }
         }
+        
 
         async function fetchAndDisplay(endpoint, title) {
             const resultDiv = document.getElementById("result");

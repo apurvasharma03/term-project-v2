@@ -167,6 +167,77 @@ async function QueryGenreCollaborationsByUserInput(genre) {
         return "An error occurred while querying the database.";
     }
 }
+async function QueryTopArtistByDecade(decade) {
+    const query = `
+        SELECT a.name AS artist, 
+               SUM(s.popularity) AS total_popularity
+        FROM songs s
+        JOIN tracks t ON s.song_id = t.song_id
+        JOIN releases r ON t.album_id = r.album_id
+        JOIN artists a ON r.artist_id = a.artist_id
+        WHERE FLOOR(YEAR(r.release_date) / 10) * 10 = ?
+        GROUP BY a.name
+        ORDER BY total_popularity DESC
+        LIMIT 1;
+    `;
+
+    try {
+        // Create a connection to the database
+        const connection = await mysql.createConnection(connectionConfig);
+
+        // Execute the query with the given decade parameter
+        const [rows] = await connection.execute(query, [decade]);
+
+        // Close the connection
+        await connection.end();
+
+        // Return the result or a no-data message
+        if (rows.length > 0) {
+            const artist = rows[0].artist;
+            const totalPopularity = rows[0].total_popularity;
+            return `Top Artist in ${decade}: ${artist} (Total Popularity: ${totalPopularity})`;
+        } else {
+            return `No data found for the decade: ${decade}`;
+        }
+    } catch (error) {
+        console.error("Error querying the database:", error);
+        return "An error occurred while querying the database.";
+    }
+}
+
+async function QuerySongQuantityByDecade(decade) {
+    const query = `
+        SELECT COUNT(s.song_id) AS song_count
+        FROM songs s
+        JOIN tracks t ON s.song_id = t.song_id
+        JOIN releases r ON t.album_id = r.album_id
+        WHERE FLOOR(YEAR(r.release_date) / 10) * 10 = ?;
+    `;
+
+    try {
+        // Create a connection to the database
+        const connection = await mysql.createConnection(connectionConfig);
+
+        // Execute the query with the given decade parameter
+        const [rows] = await connection.execute(query, [decade]);
+
+        // Close the connection
+        await connection.end();
+
+        // Return the result or a no-data message
+        if (rows.length > 0) {
+            const songCount = rows[0].song_count;
+            return `Number of songs in ${decade}: ${songCount}`;
+        } else {
+            return `No data found for the decade: ${decade}`;
+        }
+    } catch (error) {
+        console.error("Error querying the database:", error);
+        return "An error occurred while querying the database.";
+    }
+}
+
+
 
 
 
@@ -220,6 +291,41 @@ app.get("/api/collaborations", async (req, res) => {
         res.json({ message: result });
     } catch (error) {
         console.error("Error in /api/collaborations:", error);
+        res.status(500).json({ error: "An error occurred while processing your request." });
+    }
+});
+// API endpoint: Top Artists by Decade
+app.get("/api/top-artists", async (req, res) => {
+    const { decade } = req.query;
+
+    // Validate the input
+    if (!decade || isNaN(decade)) {
+        return res.status(400).json({ message: "Invalid or missing decade parameter." });
+    }
+
+    try {
+        const result = await QueryTopArtistByDecade(decade);
+        res.json({ message: result });
+    } catch (error) {
+        console.error("Error in /api/top-artists:", error);
+        res.status(500).json({ error: "An error occurred while processing your request." });
+    }
+});
+
+// API endpoint: Song Quantity by Decade
+app.get("/api/song-quantity", async (req, res) => {
+    const { decade } = req.query;
+
+    // Validate the input
+    if (!decade || isNaN(decade)) {
+        return res.status(400).json({ message: "Invalid or missing decade parameter." });
+    }
+
+    try {
+        const result = await QuerySongQuantityByDecade(decade);
+        res.json({ message: result });
+    } catch (error) {
+        console.error("Error in /api/song-quantity:", error);
         res.status(500).json({ error: "An error occurred while processing your request." });
     }
 });
