@@ -89,33 +89,87 @@ async function QueryArtistsWithMultipleGenres(decade) {
     }
 }
 
-// Query function: Top Genres
-async function QueryTopGenres() {
+//const mysql = require("mysql2/promise");
+
+// Query function: Top Genre by Decade
+async function QueryTopGenreByDecade(decade) {
     const query = `
-        SELECT genre, COUNT(*) AS count
-        FROM genres
-        GROUP BY genre
-        ORDER BY count DESC
-        LIMIT 10;
+        SELECT a.main_genre AS genre, 
+               SUM(s.popularity) AS total_popularity
+        FROM songs s
+        JOIN tracks t ON s.song_id = t.song_id
+        JOIN releases r ON t.album_id = r.album_id
+        JOIN artists a ON r.artist_id = a.artist_id
+        WHERE FLOOR(YEAR(r.release_date) / 10) * 10 = ?
+        GROUP BY a.main_genre
+        ORDER BY total_popularity DESC
+        LIMIT 1;
     `;
 
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(connectionConfig);
 
-        // Execute the query
-        const [rows] = await connection.execute(query);
+        // Execute the query with the given decade parameter
+        const [rows] = await connection.execute(query, [decade]);
 
         // Close the connection
-        connection.end();
+        await connection.end();
 
-        // Format the result
-        return rows.map(row => `${row.genre}: ${row.count} songs`).join("\n");
+        // Return the result or a no-data message
+        if (rows.length > 0) {
+            const genre = rows[0].genre;
+            const totalPopularity = rows[0].total_popularity;
+            return `Top Genre in ${decade}: ${genre} (Total Popularity: ${totalPopularity})`;
+        } else {
+            return `No data found for the decade: ${decade}`;
+        }
     } catch (error) {
         console.error("Error querying the database:", error);
         return "An error occurred while querying the database.";
     }
 }
+async function QueryGenreCollaborationsByUserInput(genre) {
+    const query = `
+        SELECT FLOOR(YEAR(r.release_date) / 10) * 10 AS decade, 
+               COUNT(DISTINCT s.song_id) AS collaboration_count
+        FROM songs s
+        JOIN tracks t ON s.song_id = t.song_id
+        JOIN releases r ON t.album_id = r.album_id
+        JOIN artists a ON r.artist_id = a.artist_id
+        WHERE s.artists LIKE '%,%' AND a.main_genre = ?
+        GROUP BY FLOOR(YEAR(r.release_date) / 10) * 10
+        ORDER BY decade;
+    `;
+
+    try {
+        // Create a connection to the database
+        const connection = await mysql.createConnection(connectionConfig);
+
+        // Execute the query with the given genre parameter
+        const [rows] = await connection.execute(query, [genre]);
+
+        // Close the connection
+        await connection.end();
+
+        // Format and return the result
+        if (rows.length > 0) {
+            let result = "Decade | Collaboration Count\n-----------------------------\n";
+            rows.forEach((row) => {
+                result += `${row.decade} | ${row.collaboration_count}\n`;
+            });
+            return result.trim();
+        } else {
+            return `No data found for genre: ${genre}`;
+        }
+    } catch (error) {
+        console.error("Error querying the database:", error);
+        return "An error occurred while querying the database.";
+    }
+}
+
+
+
 
 // API endpoint: Cross-Genre Artists
 app.get("/api/cross-genre", async (req, res) => {
@@ -136,16 +190,41 @@ app.get("/api/cross-genre", async (req, res) => {
     }
 });
 
-// API endpoint: Top Genres
+// API endpoint: Top Genres by Decade
 app.get("/api/top-genres", async (req, res) => {
+    const { decade } = req.query;
+
+    if (!decade || isNaN(decade)) {
+        return res.status(400).json({ message: "Invalid or missing decade parameter." });
+    }
+
     try {
-        const result = await QueryTopGenres();
+        const result = await QueryTopGenreByDecade(decade);
         res.json({ message: result });
     } catch (error) {
         console.error("Error in /api/top-genres:", error);
         res.status(500).json({ error: "An error occurred while processing your request." });
     }
 });
+// API endpoint: Genre Collaborations
+app.get("/api/collaborations", async (req, res) => {
+    const { genre } = req.query;
+
+    // Validate the input
+    if (!genre) {
+        return res.status(400).json({ message: "Genre is required." });
+    }
+
+    try {
+        const result = await QueryGenreCollaborationsByUserInput(genre);
+        res.json({ message: result });
+    } catch (error) {
+        console.error("Error in /api/collaborations:", error);
+        res.status(500).json({ error: "An error occurred while processing your request." });
+    }
+});
+
+
 
 // Serve the main HTML file
 app.get("/", (req, res) => {

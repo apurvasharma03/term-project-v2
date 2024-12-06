@@ -73,12 +73,46 @@
 
     <script>
         async function handleCollaborations() {
-            fetchAndDisplay("collaborations", "Collaborations");
+            const genre = prompt("Enter the genre (e.g., Pop):");
+            if (!genre) {
+                alert("Please enter a valid genre!");
+                return;
+            }
+        
+            const resultDiv = document.getElementById("result");
+            resultDiv.textContent = "Loading...";
+        
+            try {
+                const response = await fetch(`http://localhost:8080/api/collaborations?genre=${encodeURIComponent(genre)}`);
+                const data = await response.json();
+                resultDiv.textContent = data.message;
+            } catch (error) {
+                console.error("Error fetching collaborations:", error);
+                resultDiv.textContent = "An error occurred. Please try again.";
+            }
         }
+        
 
         async function handleTopGenres() {
-            fetchAndDisplay("top-genres", "Top Genres");
+            const decade = prompt("Enter the decade (e.g., 1980):");
+            if (!decade || isNaN(decade)) {
+                alert("Please enter a valid decade!");
+                return;
+            }
+        
+            const resultDiv = document.getElementById("result");
+            resultDiv.textContent = "Loading...";
+        
+            try {
+                const response = await fetch(`http://localhost:8080/api/top-genres?decade=${decade}`);
+                const data = await response.json();
+                resultDiv.textContent = data.message;
+            } catch (error) {
+                console.error("Error fetching top genres:", error);
+                resultDiv.textContent = "An error occurred. Please try again.";
+            }
         }
+        
 
         async function handleTopArtists() {
             fetchAndDisplay("top-artists", "Top Artists");

@@ -35,7 +35,7 @@
             //String genre = scanner.nextLine();
  
          
-         //QueryGenreCollaborations();
+         QueryGenreCollaborations();
          //QueryGenreCollaborationsByUserInput(genre);
          // Collect user input for the decade
          System.out.print("Enter the decade (e.g., 1980, 1990): ");
