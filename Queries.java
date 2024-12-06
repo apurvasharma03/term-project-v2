@@ -167,6 +167,55 @@
          }
      }
     
+
+
+     public static void Query5(String artistName) {
+        // SQL query
+        String query = "SELECT decade, COUNT(*) AS song_count " +
+               "FROM ( " +
+               "    SELECT FLOOR(CAST(SUBSTRING(r.release_date, 1, 4) AS UNSIGNED) / 10) * 10 AS decade, " +
+               "           a.main_genre AS genre " +
+               "    FROM releases r " +
+               "    JOIN artists a ON r.artist_id = a.artist_id " +
+               "    WHERE a.main_genre = ? " +  // Use a placeholder for dynamic genre input
+               ") AS GenreCounts " +
+               "GROUP BY decade " +
+               "ORDER BY decade;";
+
+    
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            // Set the parameter for the LIKE clause
+            preparedStatement.setString(1, "%" + artistName + "%");
+            
+            // Execute the query
+            ResultSet rs = preparedStatement.executeQuery();
+    
+            // Print the header
+            System.out.println("Decade | Most Popular Genre | Song Count");
+            System.out.println("----------------------------------------");
+    
+            boolean hasResults = false;
+    
+            // Iterate through the result set
+            while (rs.next()) {
+                hasResults = true;
+                String songName = rs.getString("song_name");
+                String artists = rs.getString("artists");
+                int popularity = rs.getInt("popularity");
+    
+                // Print each row
+                System.out.println(songName + " | " + artists + " | " + popularity);
+            }
+    
+            // If no results, display a message
+            if (!hasResults) {
+                System.out.println("No songs found for artist: " + artistName);
+            }
+        } catch (SQLException e) {
+            // Handle SQL exceptions
+            System.err.println("Error during Query2: " + e.getMessage());
+        }
+    }
     
     
  }
