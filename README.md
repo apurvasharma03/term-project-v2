@@ -1,5 +1,11 @@
 # Music Mogul
 
+![Tech Stack](https://img.shields.io/badge/Built%20With-Node.js%2C%20Java%2C%20MySQL%2C%20JavaScript-blue)
+![Last Commit](https://img.shields.io/github/last-commit/apurvasharma03/music-mogul)
+![Video Demo](https://img.shields.io/badge/Demo-Video%20Walkthrough-brightgreen)
+![Dataset](https://img.shields.io/badge/Dataset-MusicOSet-purple)
+
+
 Music Mogul is an interactive music analytics platform that enables users to explore real-world trends, history, and patterns in music data. Built with a hybrid tech stack, the application offers dynamic querying capabilities on a curated database, enabling insights into artist collaborations, genre trends by decade, cross-genre performers, and more.
 
 ---
